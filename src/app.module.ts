@@ -4,15 +4,22 @@ import { AppService } from './app.service';
 import { UsersModule } from './modules/users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { PropertyModule } from './modules/property/property.module';
-import { PropertyImageModule } from './modules/property-image/property-image.module';
-import { ReservationModule } from './modules/reservation/reservation.module';
-import { ReviewModule } from './modules/review/review.module';
-import { AmenityModule } from './modules/amenity/amenity.module';
+import { ReviewModule } from './modules/reviews/reviews.module';
+import { ReservationsModule } from './modules/reservations/reservations.module';
+import { PropertiesModule } from './modules/properties/properties.module';
+import { PropertyImagesModule } from './modules/property.images/property.images.module';
+import { AmenitiesModule } from './modules/amenities/amenities.module';
+import { PropertyAmenitiesModule } from './modules/property.amenities/property.amenities.module';
+import { PaymentsModule } from './modules/payments/payments.module';
+import { CategoriesModule } from './modules/categories/categories.module';
+import { FavoritesModule } from './modules/favorites/favorites.module';
 
 @Module({
   imports: [
     UsersModule,
+    ReviewModule,
+    ReservationsModule,
+    PropertiesModule,
     ConfigModule.forRoot({ isGlobal: true }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
@@ -21,11 +28,12 @@ import { AmenityModule } from './modules/amenity/amenity.module';
       }),
       inject: [ConfigService],
     }),
-    PropertyModule,
-    PropertyImageModule,
-    ReservationModule,
-    ReviewModule,
-    AmenityModule,
+    PropertyImagesModule,
+    AmenitiesModule,
+    PropertyAmenitiesModule,
+    PaymentsModule,
+    CategoriesModule,
+    FavoritesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

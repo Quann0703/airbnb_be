@@ -8,8 +8,8 @@ import {
   Delete,
 } from '@nestjs/common';
 import { ReviewService } from './reviews.service';
-import { CreateReviewDto } from './dto/create-review.dto';
-import { UpdateReviewDto } from './dto/update-review.dto';
+import { CreateReviewDto } from './dto/create-reviews.dto';
+import { UpdateReviewDto } from './dto/update-reviews.dto';
 
 @Controller('review')
 export class ReviewController {
