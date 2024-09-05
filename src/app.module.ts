@@ -13,6 +13,7 @@ import { PropertyAmenitiesModule } from './modules/property.amenities/property.a
 import { PaymentsModule } from './modules/payments/payments.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
+import { AuthModule } from '@/auth/auth.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { FavoritesModule } from './modules/favorites/favorites.module';
     PaymentsModule,
     CategoriesModule,
     FavoritesModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
