@@ -1,18 +1,24 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { BadRequestException, Injectable } from '@nestjs/common';
+import mongoose, { Model } from 'mongoose';
+import aqp from 'api-query-params';
+import { v4 as uuidv4 } from 'uuid';
+import dayjs from 'dayjs';
+import { InjectModel } from '@nestjs/mongoose';
+
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { InjectModel } from '@nestjs/mongoose';
 import { User } from './schemas/user.schema';
-import mongoose, { Model } from 'mongoose';
 import { hashPasswordHelper } from '@/helpers/utills';
-import aqp from 'api-query-params';
+import { CreateAuthDto } from '@/auth/dto/create-auth.dto';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name)
     private userModel: Model<User>,
+    private readonly mailerService: MailerService,
   ) {}
 
   isEmailExist = async (email: string) => {
@@ -87,5 +93,42 @@ export class UsersService {
     } else {
       throw new BadRequestException('Id không đúng định dạng mongodb');
     }
+  }
+
+  async handelRegister(registerDto: CreateAuthDto) {
+    const { email, password, name } = registerDto;
+
+    const isEmailExist = await this.isEmailExist(email);
+
+    if (isEmailExist) {
+      throw new BadRequestException(
+        `Email da ton tai:${email} vui long su dung email khac`,
+      );
+    }
+    const hashPassword = await hashPasswordHelper(password);
+    const codeId = uuidv4();
+    const user = await this.userModel.create({
+      name,
+      email,
+      password: hashPassword,
+      isActive: false,
+      codeId: codeId,
+      codeExpired: dayjs().add(1, 'minutes'),
+    });
+
+    //sent email
+    this.mailerService.sendMail({
+      to: user?.email,
+      from: 'noreply@nestjs.com', // sender address
+      subject: 'Testing Nest MailerModule ✔', // Subject line
+      template: 'register',
+      context: {
+        name: user?.name ?? user?.email,
+        activationCode: codeId,
+      },
+    });
+    return {
+      _id: user._id,
+    };
   }
 }
