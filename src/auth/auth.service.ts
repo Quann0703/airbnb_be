@@ -3,6 +3,10 @@ import { UsersService } from '@/modules/users/users.service';
 import { comparePasswordHelper } from '@/helpers/utills';
 import { JwtService } from '@nestjs/jwt';
 import { CreateAuthDto } from './dto/create-auth.dto';
+import {
+  ChangePasswordDto,
+  CodeAuthDto,
+} from '@/modules/users/dto/create-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -38,5 +42,20 @@ export class AuthService {
 
   async handleRegister(register: CreateAuthDto) {
     return await this.usersService.handelRegister(register);
+  }
+
+  async handleCheckCode(data: CodeAuthDto) {
+    return await this.usersService.handleActive(data);
+  }
+
+  async retryActive(data: string) {
+    return await this.usersService.handleRetry(data);
+  }
+
+  async retryPassword(data: string) {
+    return await this.usersService.handleRetryPassword(data);
+  }
+  async changePassword(data: ChangePasswordDto) {
+    return await this.usersService.handleChangePassword(data);
   }
 }

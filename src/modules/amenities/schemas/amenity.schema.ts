@@ -10,6 +10,9 @@ export class Amenity {
 
   @Prop()
   description: string;
+
+  @Prop()
+  icon: string;
 }
 
 export const AmenitySchema = SchemaFactory.createForClass(Amenity);

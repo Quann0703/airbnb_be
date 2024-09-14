@@ -1,4 +1,13 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateAmenityDto } from './create-amenity.dto';
+import { IsMongoId, IsNotEmpty, IsOptional } from 'class-validator';
 
-export class UpdateAmenityDto extends PartialType(CreateAmenityDto) {}
+export class UpdateAmenityDto {
+  @IsMongoId({ message: '_id khong hop le' })
+  @IsNotEmpty({ message: '_id khong hop le' })
+  _id: string;
+
+  @IsOptional()
+  description: string;
+
+  @IsOptional()
+  icon: string;
+}

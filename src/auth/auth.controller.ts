@@ -11,8 +11,12 @@ import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './passport/local-auth.guard';
 import { JwtAuthGuard } from './passport/jwt-auth.guard';
 import { CreateAuthDto } from './dto/create-auth.dto';
-import { Public } from '@/decorator/customize';
+import { Public, ResponseMessage } from '@/decorator/customize';
 import { MailerService } from '@nestjs-modules/mailer';
+import {
+  ChangePasswordDto,
+  CodeAuthDto,
+} from '@/modules/users/dto/create-user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -23,6 +27,8 @@ export class AuthController {
 
   @Post('login')
   @UseGuards(LocalAuthGuard)
+  @ResponseMessage('fetch login')
+  @Public()
   handleLogin(@Request() req) {
     return this.authService.login(req.user);
   }
@@ -37,6 +43,30 @@ export class AuthController {
   @Get('profile')
   getProfile(@Request() req) {
     return req.user;
+  }
+
+  @Post('check-code')
+  @Public()
+  checkCode(@Body() codeDto: CodeAuthDto) {
+    return this.authService.handleCheckCode(codeDto);
+  }
+
+  @Post('retry-active')
+  @Public()
+  retryActive(@Body('email') email: string) {
+    return this.authService.retryActive(email);
+  }
+
+  @Post('retry-password')
+  @Public()
+  retryPassword(@Body('email') email: string) {
+    return this.authService.retryPassword(email);
+  }
+
+  @Post('change-password')
+  @Public()
+  changePassword(@Body() data: ChangePasswordDto) {
+    return this.authService.changePassword(data);
   }
 
   @Get('mail')

@@ -6,7 +6,11 @@ import { v4 as uuidv4 } from 'uuid';
 import dayjs from 'dayjs';
 import { InjectModel } from '@nestjs/mongoose';
 
-import { CreateUserDto } from './dto/create-user.dto';
+import {
+  ChangePasswordDto,
+  CodeAuthDto,
+  CreateUserDto,
+} from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './schemas/user.schema';
 import { hashPasswordHelper } from '@/helpers/utills';
@@ -129,6 +133,115 @@ export class UsersService {
     });
     return {
       _id: user._id,
+    };
+  }
+
+  async handleActive(data: CodeAuthDto) {
+    const user = await this.userModel.findOne({
+      _id: data._id,
+      codeId: data.code,
+    });
+
+    if (!user) {
+      throw new BadRequestException('Mã code không hợp lệ hoặc đã hết hạn');
+    }
+
+    //check expire code
+    const isBeforeCheck = dayjs().isBefore(user.codeExpired);
+
+    if (isBeforeCheck) {
+      await this.userModel.updateOne(
+        {
+          _id: data._id,
+        },
+        {
+          isActive: true,
+        },
+      );
+      return { isBeforeCheck };
+    } else {
+      throw new BadRequestException('Mã code không hợp lệ hoặc hết hạn');
+    }
+  }
+
+  async handleRetry(email: string) {
+    const codeId = uuidv4();
+    const user = await this.userModel.findOne({ email: email });
+
+    if (!user) {
+      throw new BadRequestException('tai khoan khong ton tai');
+    }
+    if (user.isActive) {
+      throw new BadRequestException('tai khoan đã được kích hoat');
+    }
+    //update user trước khi gửi lại email
+    await user.updateOne({
+      codeId: codeId,
+      codeExpired: dayjs().add(1, 'minutes'),
+    });
+    //resent email
+    this.mailerService.sendMail({
+      to: user.email, // list of receivers
+      from: 'noreply@nestjs.com', // sender address
+      subject: 'Activate your account at @Quandev', // Subject line
+      template: 'register',
+      context: {
+        name: user?.name ?? user?.email,
+        activationCode: codeId,
+      },
+    });
+    return {
+      _id: user._id,
+    };
+  }
+  async handleChangePassword(data: ChangePasswordDto) {
+    if (data.confirmPassword !== data.password) {
+      throw new BadRequestException('Mật khẩu không chính xác');
+    }
+    const user = await this.userModel.findOne({ email: data.email });
+
+    if (!user) {
+      throw new BadRequestException('người dùng không tồn tại');
+    }
+
+    const isBeforeCheck = dayjs().isBefore(user.codeExpired);
+
+    if (isBeforeCheck) {
+      const newPassword = await hashPasswordHelper(data.password);
+      await user.updateOne({ password: newPassword });
+      return {
+        isBeforeCheck,
+      };
+    } else {
+      throw new BadRequestException('Mã code không hợp lệ hoặc hết hạn');
+    }
+  }
+
+  async handleRetryPassword(email: string) {
+    const codeId = uuidv4();
+
+    const user = await this.userModel.findOne({ email: email });
+
+    if (!user) {
+      throw new BadRequestException('người dùng không tồn tại');
+    }
+    await user.updateOne({
+      codeId: codeId,
+      codeExpired: dayjs().add(1, 'minutes'),
+    });
+    this.mailerService.sendMail({
+      to: user.email, // list of receivers
+      from: 'noreply@nestjs.com', // sender address
+      subject: 'change your password account at @Quandev', // Subject line
+      template: 'register',
+      context: {
+        name: user?.name ?? user?.email,
+        activationCode: codeId,
+      },
+    });
+    return {
+      _id: user?._id,
+      email: user?.email,
     };
   }
 }
