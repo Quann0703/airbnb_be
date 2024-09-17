@@ -84,6 +84,26 @@ export class UsersService {
     return await this.userModel.findOne({ email: email });
   }
 
+  async getCurrentUser(email: string) {
+    const isEmailExist = await this.isEmailExist(email);
+
+    if (!isEmailExist) {
+      throw new BadRequestException(
+        `Email ko ton tai:${email} vui long su dung email khac`,
+      );
+    }
+    const user = await this.userModel.findOne({ email: email });
+    return {
+      user: {
+        _id: user?._id,
+        name: user?.name,
+        email: user?.email,
+        isVerify: user?.isActive,
+        role: user?.role,
+      },
+    };
+  }
+
   async update(updateUserDto: UpdateUserDto) {
     return await this.userModel.updateOne(
       { _id: updateUserDto._id },
