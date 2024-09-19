@@ -10,7 +10,7 @@ import { AuthService } from './auth.service';
 
 import { LocalAuthGuard } from './passport/local-auth.guard';
 import { JwtAuthGuard } from './passport/jwt-auth.guard';
-import { CreateAuthDto } from './dto/create-auth.dto';
+import { CreateAuthDto, CreateAuthGoogleDto } from './dto/create-auth.dto';
 import { Public, ResponseMessage } from '@/decorator/customize';
 import { MailerService } from '@nestjs-modules/mailer';
 import {
@@ -31,6 +31,12 @@ export class AuthController {
   @ResponseMessage('fetch login')
   handleLogin(@Request() req) {
     return this.authService.login(req.user);
+  }
+
+  @Post('google')
+  @Public()
+  async googleAuth(@Body() user: CreateAuthGoogleDto) {
+    return await this.authService.handleGoogleUser(user);
   }
 
   @Post('register')

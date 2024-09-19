@@ -14,7 +14,7 @@ import {
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './schemas/user.schema';
 import { hashPasswordHelper } from '@/helpers/utills';
-import { CreateAuthDto } from '@/auth/dto/create-auth.dto';
+import { CreateAuthDto, CreateAuthGoogleDto } from '@/auth/dto/create-auth.dto';
 import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
@@ -98,6 +98,7 @@ export class UsersService {
         _id: user?._id,
         name: user?.name,
         email: user?.email,
+        image: user?.image,
         isVerify: user?.isActive,
         role: user?.role,
       },
@@ -150,6 +151,27 @@ export class UsersService {
         name: user?.name ?? user?.email,
         activationCode: codeId,
       },
+    });
+    return {
+      _id: user._id,
+    };
+  }
+
+  async handleGoogle(data: CreateAuthGoogleDto) {
+    const { email, name, image } = data;
+    const isEmailExist = await this.isEmailExist(email);
+
+    if (isEmailExist) {
+      throw new BadRequestException(
+        `Email da ton tai:${email} vui long su dung email khac`,
+      );
+    }
+
+    const user = await this.userModel.create({
+      name,
+      email,
+      image,
+      isActive: true,
     });
     return {
       _id: user._id,

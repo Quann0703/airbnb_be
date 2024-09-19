@@ -10,3 +10,12 @@ export class CreateAuthDto {
   @IsOptional()
   name: string;
 }
+
+export class CreateAuthGoogleDto {
+  @IsNotEmpty({ message: 'email không được để trống' })
+  email: string;
+  @IsOptional()
+  name: string;
+  @IsOptional()
+  image: string;
+}
