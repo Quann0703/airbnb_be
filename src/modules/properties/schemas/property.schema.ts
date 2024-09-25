@@ -1,4 +1,4 @@
-import { Amenity } from '@/modules/amenities/schemas/amenity.schema';
+import { AmenityGroup } from '@/modules/amenity-group/schemas/amenity-group.schema';
 import { Category } from '@/modules/categories/schemas/category.schema';
 import { User } from '@/modules/users/schemas/user.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
@@ -43,7 +43,9 @@ export class Property {
   @Prop({ type: mongoose.Schema.ObjectId, ref: Category.name })
   category: mongoose.Schema.Types.ObjectId;
 
-  @Prop({ type: mongoose.Schema.ObjectId, ref: Amenity.name })
-  amenityList: Amenity[];
+  @Prop({
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: AmenityGroup.name }],
+  })
+  amenityList: mongoose.Schema.Types.ObjectId[];
 }
 export const PropertySchema = SchemaFactory.createForClass(Property);

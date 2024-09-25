@@ -6,18 +6,39 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Amenity } from './schemas/amenity.schema';
 import mongoose, { Model } from 'mongoose';
 import aqp from 'api-query-params';
+import { AmenityGroup } from '../amenity-group/schemas/amenity-group.schema';
 
 @Injectable()
 export class AmenitiesService {
   constructor(
     @InjectModel(Amenity.name)
     private amenityModel: Model<Amenity>,
+    @InjectModel(AmenityGroup.name)
+    private amenityGroupModel: Model<AmenityGroup>,
   ) {}
   async create(createAmenityDto: CreateAmenityDto) {
-    const { name, description, icon } = createAmenityDto;
-    const amenity = await this.create({ name, description, icon });
+    const { name, description, icon, groupId } = createAmenityDto;
+
+    const amenityGroupId = await this.amenityGroupModel.findOne({
+      _id: groupId,
+    });
+
+    if (!amenityGroupId) {
+      throw new BadRequestException('không có nhóm tiện ích nào');
+    }
+
+    const amenity = await this.amenityModel.create({
+      name,
+      description,
+      icon,
+      group: groupId,
+    });
     if (!amenity) {
       throw new BadRequestException('tao khong thanh cong');
+    }
+
+    if (amenityGroupId) {
+      await amenityGroupId.updateOne({ $push: { amenities: amenity._id } });
     }
     return {
       _id: amenity._id,
@@ -58,22 +79,61 @@ export class AmenitiesService {
   }
 
   async update(updateAmenityDto: UpdateAmenityDto) {
-    const updateAmenity = await this.amenityModel.updateOne(
-      {
-        _id: updateAmenityDto._id,
-      },
-      { ...updateAmenityDto },
-    );
-    if (!updateAmenity) {
-      throw new BadRequestException('cap nhap khong thanh cong');
+    const { _id, description, icon, groupId } = updateAmenityDto;
+
+    // Tìm tiện ích dựa trên _id
+    const amenity = await this.amenityModel.findById(_id);
+    if (!amenity) {
+      throw new BadRequestException('Tiện ích không tồn tại');
     }
+
+    const prevGroupId = amenity.group?.toString(); // Chuyển ObjectId sang chuỗi để so sánh
+    const newGroupId = groupId;
+
+    // Nếu tiện ích đang thuộc group và group mới khác với group cũ
+    if (prevGroupId && prevGroupId !== newGroupId) {
+      // Xóa tiện ích khỏi group cũ (nếu có)
+      if (prevGroupId) {
+        await this.amenityGroupModel.findByIdAndUpdate(prevGroupId, {
+          $pull: { amenities: amenity._id },
+        });
+      }
+
+      // Thêm tiện ích vào group mới (nếu có)
+      if (newGroupId) {
+        await this.amenityGroupModel.findByIdAndUpdate(newGroupId, {
+          $addToSet: { amenities: amenity._id },
+        });
+      }
+    }
+
+    const updatedAmenity = await this.amenityModel.findByIdAndUpdate(
+      _id,
+      { description, icon, group: newGroupId },
+      { new: true }, // Trả về tài liệu đã được cập nhật
+    );
+
+    if (!updatedAmenity) {
+      throw new BadRequestException('Cập nhật không thành công');
+    }
+
     return {
-      updateAmenity,
+      updatedAmenity,
     };
   }
 
   async remove(_id: number) {
     if (mongoose.isValidObjectId(_id)) {
+      const amenity = await this.amenityModel.findById(_id);
+      if (!amenity) {
+        throw new BadRequestException('Tiện ích không tồn tại');
+      }
+      const groupId = amenity.group?.toString();
+      if (groupId) {
+        await this.amenityGroupModel.findByIdAndUpdate(groupId, {
+          $pull: { amenities: amenity._id },
+        });
+      }
       return await this.amenityModel.deleteOne({ _id });
     } else {
       throw new BadRequestException('Id khong dung dinh dang');

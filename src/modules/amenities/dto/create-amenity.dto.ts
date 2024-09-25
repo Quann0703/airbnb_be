@@ -1,7 +1,7 @@
-import { IsEmpty, IsOptional } from 'class-validator';
+import { IsMongoId, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class CreateAmenityDto {
-  @IsEmpty()
+  @IsNotEmpty()
   name: string;
 
   @IsOptional()
@@ -9,4 +9,8 @@ export class CreateAmenityDto {
 
   @IsOptional()
   icon: string;
+
+  @IsOptional()
+  @IsMongoId()
+  groupId?: string;
 }

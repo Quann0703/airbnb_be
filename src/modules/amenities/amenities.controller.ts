@@ -30,7 +30,7 @@ export class AmenitiesController {
     return this.amenitiesService.findOne(id);
   }
 
-  @Patch(':id')
+  @Patch()
   update(@Body() updateAmenityDto: UpdateAmenityDto) {
     return this.amenitiesService.update(updateAmenityDto);
   }

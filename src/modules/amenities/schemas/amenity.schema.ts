@@ -1,5 +1,6 @@
+import { AmenityGroup } from '@/modules/amenity-group/schemas/amenity-group.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
 
 export type AmenityDocument = HydratedDocument<Amenity>;
 
@@ -13,6 +14,9 @@ export class Amenity {
 
   @Prop()
   icon: string;
+
+  @Prop({ type: Types.ObjectId, ref: AmenityGroup.name })
+  group: AmenityGroup;
 }
 
 export const AmenitySchema = SchemaFactory.createForClass(Amenity);

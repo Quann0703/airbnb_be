@@ -20,6 +20,7 @@ import { FavoritesModule } from './modules/favorites/favorites.module';
 import { AuthModule } from '@/auth/auth.module';
 import { JwtAuthGuard } from './auth/passport/jwt-auth.guard';
 import { TransformInterceptor } from './core/transform.interceptor';
+import { AmenityGroupModule } from './modules/amenity-group/amenity-group.module';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { TransformInterceptor } from './core/transform.interceptor';
       }),
       inject: [ConfigService],
     }),
+    AmenityGroupModule,
   ],
   controllers: [AppController],
   providers: [
