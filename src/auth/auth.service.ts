@@ -45,7 +45,14 @@ export class AuthService {
   }
 
   async handleGoogleUser(data: CreateAuthGoogleDto) {
-    return await this.usersService.handleGoogle(data);
+    const user = await this.usersService.handleGoogle(data);
+    const token = this.jwtService.sign({ id: user._id });
+    return {
+      name: user.name,
+      email: user.email,
+      image: user.image,
+      token,
+    };
   }
 
   async handleCheckCode(data: CodeAuthDto) {

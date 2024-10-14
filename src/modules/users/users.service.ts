@@ -76,8 +76,9 @@ export class UsersService {
     return { results, totalPages };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: string) {
+    const user = await this.userModel.findOne({ _id: id });
+    return { user };
   }
 
   async findByEmail(email: string) {
@@ -161,20 +162,25 @@ export class UsersService {
     const { email, name, image } = data;
     const isEmailExist = await this.isEmailExist(email);
 
-    if (isEmailExist) {
-      throw new BadRequestException(
-        `Email da ton tai:${email} vui long su dung email khac`,
-      );
+    // if (isEmailExist) {
+    //   throw new BadRequestException(
+    //     `Email da ton tai:${email} vui long su dung email khac`,
+    //   );
+    // }
+    let user = await this.userModel.findOne({ email: email });
+    if (!user) {
+      user = await this.userModel.create({
+        name,
+        email,
+        image,
+        isActive: true,
+      });
     }
-
-    const user = await this.userModel.create({
-      name,
-      email,
-      image,
-      isActive: true,
-    });
     return {
       _id: user._id,
+      name: user.name,
+      email: user.email,
+      image: user.image,
     };
   }
 

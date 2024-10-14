@@ -1,5 +1,6 @@
 import { AmenityGroup } from '@/modules/amenity-group/schemas/amenity-group.schema';
 import { Category } from '@/modules/categories/schemas/category.schema';
+import { PropertyImage } from '@/modules/property.images/schemas/property.image.schema';
 import { User } from '@/modules/users/schemas/user.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
@@ -12,6 +13,9 @@ export class Property {
 
   @Prop()
   description: string;
+
+  @Prop()
+  view: string;
 
   @Prop()
   address: string;
@@ -37,11 +41,17 @@ export class Property {
   @Prop()
   numBathrooms: number;
 
+  @Prop()
+  rating: number;
+
   @Prop({ type: mongoose.Schema.ObjectId, ref: User.name })
   host: mongoose.Schema.Types.ObjectId;
 
   @Prop({ type: mongoose.Schema.ObjectId, ref: Category.name })
   category: mongoose.Schema.Types.ObjectId;
+
+  @Prop({ type: mongoose.Schema.ObjectId, ref: PropertyImage.name })
+  images: mongoose.Schema.Types.ObjectId;
 
   @Prop({
     type: [{ type: mongoose.Schema.Types.ObjectId, ref: AmenityGroup.name }],

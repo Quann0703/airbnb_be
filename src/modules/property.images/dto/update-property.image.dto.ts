@@ -1,4 +1,16 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreatePropertyImageDto } from './create-property.image.dto';
+import { IsArray, IsMongoId, IsNotEmpty, IsOptional } from 'class-validator';
 
-export class UpdatePropertyImageDto extends PartialType(CreatePropertyImageDto) {}
+export class UpdatePropertyImageDto {
+  @IsMongoId({ message: '_id khong hop le' })
+  @IsNotEmpty({ message: '_id khong hop le' })
+  _id: string;
+
+  @IsMongoId({ message: 'id property khong hop le' })
+  @IsNotEmpty({ message: 'id property khong hop le' })
+  propertyId: string;
+
+  @IsArray()
+  @IsMongoId({ each: true })
+  @IsOptional()
+  imageGroup?: string[];
+}

@@ -21,6 +21,9 @@ import { AuthModule } from '@/auth/auth.module';
 import { JwtAuthGuard } from './auth/passport/jwt-auth.guard';
 import { TransformInterceptor } from './core/transform.interceptor';
 import { AmenityGroupModule } from './modules/amenity-group/amenity-group.module';
+import { RulesModule } from './modules/rules/rules.module';
+import { EvaluatesModule } from './modules/evaluates/evaluates.module';
+import { ImageGroupsModule } from './modules/image-groups/image-groups.module';
 
 @Module({
   imports: [
@@ -71,6 +74,9 @@ import { AmenityGroupModule } from './modules/amenity-group/amenity-group.module
       inject: [ConfigService],
     }),
     AmenityGroupModule,
+    RulesModule,
+    EvaluatesModule,
+    ImageGroupsModule,
   ],
   controllers: [AppController],
   providers: [

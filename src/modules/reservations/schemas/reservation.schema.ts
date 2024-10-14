@@ -17,16 +17,31 @@ export class Reservation {
   email: string;
 
   @Prop()
+  phoneNumber: string; // Thêm số điện thoại liên hệ
+
+  @Prop()
   startDate: Date;
 
   @Prop()
   endDate: Date;
 
   @Prop()
+  guestsCount: number; // Thêm số lượng khách thuê
+
+  @Prop()
   totalPrice: number;
 
   @Prop()
-  status: string; // Could be 'Confirmed', 'Pending', 'Cancelled'
+  status: string; // 'Confirmed', 'Pending', 'Cancelled'
+
+  @Prop()
+  paymentMethod: string; // 'Credit Card', 'Paypal', 'Cash'
+
+  @Prop()
+  paymentStatus: string; // 'Paid', 'Unpaid', 'Refunded'
+
+  @Prop()
+  notes: string; // Ghi chú cho đặt phòng
 }
 
 export const ReservationSchema = SchemaFactory.createForClass(Reservation);

@@ -6,11 +6,16 @@ import {
   PropertyImage,
   PropertyImageSchema,
 } from './schemas/property.image.schema';
+import {
+  Property,
+  PropertySchema,
+} from '../properties/schemas/property.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: PropertyImage.name, schema: PropertyImageSchema },
+      { name: Property.name, schema: PropertySchema },
     ]),
   ],
   controllers: [PropertyImagesController],

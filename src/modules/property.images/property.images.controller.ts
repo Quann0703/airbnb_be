@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { PropertyImagesService } from './property.images.service';
 import { CreatePropertyImageDto } from './dto/create-property.image.dto';
 import { UpdatePropertyImageDto } from './dto/update-property.image.dto';
@@ -23,12 +31,12 @@ export class PropertyImagesController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePropertyImageDto: UpdatePropertyImageDto) {
-    return this.propertyImagesService.update(+id, updatePropertyImageDto);
+  update(@Body() updatePropertyImageDto: UpdatePropertyImageDto) {
+    return this.propertyImagesService.update(updatePropertyImageDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.propertyImagesService.remove(+id);
+    return this.propertyImagesService.remove(id);
   }
 }
