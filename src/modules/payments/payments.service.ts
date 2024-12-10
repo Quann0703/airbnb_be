@@ -45,13 +45,15 @@ export class PaymentsService {
     return `This action removes a #${id} payment`;
   }
 
-  async createPayment(createPaymentDto: CreatePaymentDto) {
-    const { propertyId, userId, night } = createPaymentDto;
+  async createPayment(_id: string, night: number) {
+    console.log(_id);
     const currency = 'USD';
     const exchangeRate = 23000;
 
     // Tìm kiếm thông tin tài sản
-    const property = await this.propertyModel.findOne({ _id: propertyId });
+
+    const property = await this.propertyModel.findById({ _id: _id });
+
     if (!property) {
       throw new BadRequestException('Không có căn hộ nào');
     }
@@ -123,33 +125,43 @@ export class PaymentsService {
     }
   }
 
-  private async getAccessToken() {
+  private async getAccessToken(retries = 3): Promise<string> {
     const auth = Buffer.from(`${this.clientId}:${this.clientSecret}`).toString(
       'base64',
     );
 
-    try {
-      const response = await firstValueFrom(
-        this.httpService.post(
-          'https://api-m.sandbox.paypal.com/v1/oauth2/token',
-          'grant_type=client_credentials',
-          {
-            headers: {
-              Authorization: `Basic ${auth}`,
-              'Content-Type': 'application/x-www-form-urlencoded',
+    for (let i = 0; i < retries; i++) {
+      try {
+        const response = await firstValueFrom(
+          this.httpService.post(
+            'https://api-m.sandbox.paypal.com/v1/oauth2/token',
+            'grant_type=client_credentials',
+            {
+              headers: {
+                Authorization: `Basic ${auth}`,
+                'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              timeout: 10000, // Thời gian chờ 10 giây
             },
-          },
-        ),
-      );
+          ),
+        );
 
-      console.log('Access Token:', response.data.access_token); // Log token để kiểm tra
-      return response.data.access_token;
-    } catch (error) {
-      console.error(
-        'Error getting access token:',
-        error.response?.data || error.message,
-      );
-      throw new BadRequestException('Failed to get PayPal access token.');
+        console.log('Access Token:', response.data.access_token);
+        return response.data.access_token;
+      } catch (error) {
+        console.error(
+          `Attempt ${i + 1} failed:`,
+          error.response?.data || error.message,
+        );
+
+        if (i === retries - 1) {
+          console.error('Exhausted retries. Failing request.');
+          throw new BadRequestException('Failed to get PayPal access token.');
+        }
+
+        // Chờ một khoảng thời gian ngắn trước khi thử lại
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
     }
   }
 
@@ -157,10 +169,10 @@ export class PaymentsService {
     try {
       const token = await this.getAccessToken();
 
-      const response = await firstValueFrom(
-        this.httpService.post(
-          `https://api-m.sandbox.paypal.com/v2/checkout/orders/${orderID}/capture`,
-          {}, // Không cần body cho capture
+      // Kiểm tra trạng thái của đơn hàng trước khi capture
+      const orderDetails = await firstValueFrom(
+        this.httpService.get(
+          `https://api-m.sandbox.paypal.com/v2/checkout/orders/${orderID}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -170,10 +182,34 @@ export class PaymentsService {
         ),
       );
 
+      if (orderDetails.data.status !== 'APPROVED') {
+        throw new BadRequestException('Order chưa được phê duyệt');
+      }
+
+      // Thực hiện capture thanh toán
+      const response = await firstValueFrom(
+        this.httpService.post(
+          `https://api-m.sandbox.paypal.com/v2/checkout/orders/${orderID}/capture`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          },
+        ),
+      );
+      console.log(response);
+
       return response.data;
     } catch (error) {
-      // In ra thông tin lỗi chi tiết
-      console.error('Error capturing payment:', error.response.data);
+      console.error(
+        'Error capturing payment:',
+        error.response?.data || error.message,
+      );
+      if (error.response?.status === 422) {
+        console.error('Payment not approved or invalid order ID');
+      }
       throw new BadRequestException('Failed to capture payment');
     }
   }

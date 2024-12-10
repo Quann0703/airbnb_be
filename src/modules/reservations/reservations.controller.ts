@@ -6,9 +6,13 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { ReservationsService } from './reservations.service';
-import { CreateReservationDto } from './dto/create-reservation.dto';
+import {
+  CreateReservationDto,
+  FindReservation,
+} from './dto/create-reservation.dto';
 import { UpdateReservationDto } from './dto/update-reservation.dto';
 
 @Controller('reservations')
@@ -21,13 +25,13 @@ export class ReservationsController {
   }
 
   @Get()
-  findAll() {
-    return this.reservationsService.findAll();
+  findAll(@Query() findReservation: FindReservation) {
+    return this.reservationsService.findAll(findReservation);
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.reservationsService.findOne(+id);
+    return this.reservationsService.findAllByUser(id);
   }
 
   @Patch()

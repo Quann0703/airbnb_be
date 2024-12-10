@@ -31,7 +31,7 @@ export class CategoriesService {
     if (filter.current) delete filter.current;
     if (filter.pageSize) delete filter.pageSize;
     if (!current) current = 1;
-    if (!pageSize) pageSize = 10;
+    if (!pageSize) pageSize = 20;
 
     const totalItems = (await this.categoryModel.find(filter)).length;
     const totalPages = Math.ceil(totalItems / pageSize);

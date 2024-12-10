@@ -69,4 +69,8 @@ export class UpdatePropertyDto {
   @IsMongoId({ each: true, message: 'Mỗi tiện nghi phải là ObjectId hợp lệ' })
   @IsOptional()
   amenityGroupIds?: string[];
+
+  @IsMongoId({ each: true, message: 'tiện nghi phòng phải là ObjectId hợp lệ' })
+  @IsOptional()
+  propertyAmenity?: string;
 }

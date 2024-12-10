@@ -8,19 +8,16 @@ import {
 
 export class CreatePropertyDto {
   @IsNotEmpty({ message: 'Tiêu đề không được để trống' })
-  @IsString({ message: 'Tiêu đề phải là chuỗi ký tự' })
   title: string;
 
   @IsNotEmpty({ message: 'Mô tả không được để trống' })
-  @IsString({ message: 'Mô tả phải là chuỗi ký tự' })
   description: string;
 
-  @IsNotEmpty({ message: 'tầm nhìn không được để trống' })
+  @IsOptional()
   @IsString({ message: 'tầm nhìn phải là chuỗi ký tự' })
   view: string;
 
   @IsNotEmpty({ message: 'Địa chỉ không được để trống' })
-  @IsString({ message: 'Địa chỉ phải là chuỗi ký tự' })
   address: string;
 
   @IsNotEmpty({ message: 'Thành phố không được để trống' })
@@ -39,7 +36,7 @@ export class CreatePropertyDto {
   // @IsNumber({}, { message: 'Giá mỗi đêm phải là số' })
   pricePerNight: number;
 
-  @IsNotEmpty({ message: 'điểm đánh giá phòng' })
+  @IsOptional()
   rating: number;
 
   @IsNotEmpty({ message: 'Số lượng khách tối đa không được để trống' })
@@ -63,11 +60,15 @@ export class CreatePropertyDto {
   category: string;
 
   @IsOptional()
-  @IsMongoId({ message: 'Danh mục phải là ObjectId hợp lệ' })
+  @IsMongoId({ message: 'ảnh phải là ObjectId hợp lệ' })
   images: string;
 
   @IsArray({ message: 'Danh sách tiện nghi phải là một mảng' })
   @IsMongoId({ each: true, message: 'Mỗi tiện nghi phải là ObjectId hợp lệ' })
   @IsOptional()
   amenityGroupIds?: string[];
+
+  @IsMongoId({ each: true, message: 'tiện nghi phòng phải là ObjectId hợp lệ' })
+  @IsOptional()
+  propertyAmenity?: string;
 }

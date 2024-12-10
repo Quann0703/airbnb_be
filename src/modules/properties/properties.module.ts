@@ -13,6 +13,10 @@ import {
   AmenityGroupSchema,
 } from '../amenity-group/schemas/amenity-group.schema';
 import { Amenity, AmenitySchema } from '../amenities/schemas/amenity.schema';
+import {
+  Reservation,
+  ReservationSchema,
+} from '../reservations/schemas/reservation.schema';
 
 @Module({
   imports: [
@@ -22,6 +26,7 @@ import { Amenity, AmenitySchema } from '../amenities/schemas/amenity.schema';
       { name: User.name, schema: UserSchema },
       { name: AmenityGroup.name, schema: AmenityGroupSchema },
       { name: Amenity.name, schema: AmenitySchema },
+      { name: Reservation.name, schema: ReservationSchema },
     ]),
   ],
   controllers: [PropertiesController],

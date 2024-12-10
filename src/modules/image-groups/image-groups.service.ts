@@ -14,24 +14,38 @@ export class ImageGroupsService {
     @InjectModel(PropertyImage.name)
     private propertyImageModel: Model<PropertyImage>,
   ) {}
+
   async create(createImageGroupDto: CreateImageGroupDto) {
     const { imageSrc, isFeatured, propertyImageId } = createImageGroupDto;
+
     const propertyImage = await this.propertyImageModel.findOne({
       _id: propertyImageId,
     });
     if (!propertyImage) {
-      throw new BadRequestException('không có căn hộ ảnh nào ');
+      throw new BadRequestException('Không có căn hộ ảnh nào');
     }
-    const imageGroup = await this.imageGroupModel.create({
-      imageSrc,
-      isFeatured: isFeatured || false,
-      propertyImageId: propertyImageId,
-    });
+
+    const images = Array.isArray(imageSrc) ? imageSrc : [imageSrc];
+
+    const imageGroups = await Promise.all(
+      images.map(async (src, index) => {
+        const imageGroup = await this.imageGroupModel.create({
+          imageSrc: src,
+          isFeatured: isFeatured !== undefined ? isFeatured : index === 0,
+          propertyImageId: propertyImageId,
+        });
+        return imageGroup;
+      }),
+    );
+
     if (propertyImageId) {
-      await propertyImage.updateOne({ $push: { imageGroup: imageGroup._id } });
+      await propertyImage.updateOne({
+        $push: { imageGroup: { $each: imageGroups.map((group) => group._id) } },
+      });
     }
+
     return {
-      _id: imageGroup._id,
+      _id: imageGroups.map((group) => group._id),
     };
   }
 

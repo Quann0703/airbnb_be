@@ -28,10 +28,30 @@ export class PropertiesController {
     return this.propertiesService.findAll(category);
   }
 
+  @Get('search')
+  @Public()
+  async searchProperties(
+    @Query() query: string,
+    @Query('current') current: string,
+    @Query('pageSize') pageSize: string,
+  ) {
+    // Chuyển current và pageSize sang kiểu number
+    const currentPage = parseInt(current, 10) || 1;
+    const pageLimit = parseInt(pageSize, 10) || 10;
+
+    return this.propertiesService.searchProperty(query, currentPage, pageLimit);
+  }
+
   @Get(':id')
   @Public()
   findOne(@Param('id') id: string) {
     return this.propertiesService.findOne(id);
+  }
+
+  @Get('host/:id')
+  @Public()
+  findAllHost(@Param('id') hostId: string) {
+    return this.propertiesService.findHost(hostId);
   }
 
   @Patch()

@@ -6,6 +6,7 @@ import { CreateAmenityGroupDto } from './dto/create-amenity-group.dto';
 import { UpdateAmenityGroupDto } from './dto/update-amenity-group.dto';
 import { AmenityGroup } from './schemas/amenity-group.schema';
 import mongoose, { Model } from 'mongoose';
+import { group } from 'console';
 
 @Injectable()
 export class AmenityGroupService {
@@ -27,8 +28,21 @@ export class AmenityGroupService {
     };
   }
 
-  findAll() {
-    return `This action returns all amenityGroup`;
+  async findAll() {
+    try {
+      const amenityGroups = await this.amenityGroupModel
+        .find()
+        .populate('amenities');
+      const basis = amenityGroups.filter((group) => group.name === 'Cơ bản');
+      const lux = amenityGroups.filter((group) => group.name === 'Cao cấp');
+      const featured = amenityGroups.filter(
+        (group) => group.name === 'Nổi bật',
+      );
+      return { amenityGroups, basis, lux, featured };
+    } catch (error) {
+      console.error('Error fetching amenity groups:', error);
+      throw new Error('Unable to fetch Amenity Groups');
+    }
   }
 
   findOne(id: number) {

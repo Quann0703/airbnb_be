@@ -1,6 +1,10 @@
+/* eslint-disable prefer-const */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { CreateReservationDto } from './dto/create-reservation.dto';
+import {
+  CreateReservationDto,
+  FindReservation,
+} from './dto/create-reservation.dto';
 import { UpdateReservationDto } from './dto/update-reservation.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Reservation } from './schemas/reservation.schema';
@@ -45,7 +49,7 @@ export class ReservationsService {
     if (!property) {
       throw new BadRequestException('không tồn tại căn hộ ');
     }
-    if (new Date(startDate) >= new Date(endDate)) {
+    if (new Date(startDate) > new Date(endDate)) {
       throw new BadRequestException('Ngày bắt đầu phải trước ngày kết thúc');
     }
     const reservation = await this.reservationModel.create({
@@ -67,8 +71,54 @@ export class ReservationsService {
     };
   }
 
-  findAll() {
-    return `This action returns all reservations`;
+  async findAll(findReservation: FindReservation) {
+    const { user, property } = findReservation;
+    let filter: any = {};
+
+    if (user) {
+      filter.user = user;
+    }
+
+    if (property) {
+      filter.property = property;
+    }
+
+    console.log('Filter:', filter); // In ra giá trị của filter
+
+    const reservations = await this.reservationModel.find(filter).populate({
+      path: 'property',
+    });
+
+    console.log('Reservations:', reservations); // In ra kết quả trả về
+    return reservations;
+  }
+
+  async findAllByUser(userId: string) {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
+    const filter = { user: userId };
+
+    console.log('Filter:', filter);
+
+    try {
+      const reservations = await this.reservationModel.find(filter).populate({
+        path: 'property',
+        populate: {
+          path: 'images',
+          populate: {
+            path: 'imageGroup',
+          },
+        },
+      });
+
+      console.log('Reservations for user:', reservations);
+      return reservations;
+    } catch (error) {
+      console.error('Error fetching reservations for user:', error);
+      throw new Error('Failed to fetch reservations for user');
+    }
   }
 
   findOne(id: number) {

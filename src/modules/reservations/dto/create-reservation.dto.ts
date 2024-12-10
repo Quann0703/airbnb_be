@@ -1,3 +1,4 @@
+import { Optional } from '@nestjs/common';
 import { Type } from 'class-transformer';
 import {
   IsDate,
@@ -56,5 +57,13 @@ export class CreateReservationDto {
 
   @IsOptional()
   @IsString()
-  notes?: string; // Ghi chú thêm (tùy chọn)
+  notes?: string;
+}
+export class FindReservation {
+  @IsMongoId()
+  user?: string;
+
+  @Optional()
+  @IsMongoId()
+  property?: string;
 }

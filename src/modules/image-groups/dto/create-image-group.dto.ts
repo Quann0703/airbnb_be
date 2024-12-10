@@ -1,8 +1,9 @@
-import { IsMongoId, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsMongoId, IsNotEmpty, IsOptional, IsUrl } from 'class-validator';
 
 export class CreateImageGroupDto {
   @IsNotEmpty()
-  imageSrc: string;
+  @IsUrl({}, { each: true })
+  imageSrc: string[];
 
   @IsOptional()
   isFeatured: boolean;

@@ -13,6 +13,9 @@ export class Amenity {
   description: string;
 
   @Prop()
+  type: string;
+
+  @Prop()
   icon: string;
 
   @Prop({ type: Types.ObjectId, ref: AmenityGroup.name })

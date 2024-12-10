@@ -1,15 +1,46 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable } from '@nestjs/common';
 import { CreateFavoriteDto } from './dto/create-favorite.dto';
 import { UpdateFavoriteDto } from './dto/update-favorite.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Favorite } from './schemas/favorite.schema';
+import mongoose, { Model } from 'mongoose';
 
 @Injectable()
 export class FavoritesService {
-  create(createFavoriteDto: CreateFavoriteDto) {
-    return 'This action adds a new favorite';
+  constructor(
+    @InjectModel(Favorite.name)
+    private favoriteModal: Model<Favorite>,
+  ) {}
+
+  async create(createFavoriteDto: CreateFavoriteDto) {
+    const existingFavorite = await this.favoriteModal.findOne({
+      property: createFavoriteDto.property,
+      user: createFavoriteDto.user,
+    });
+
+    if (existingFavorite) {
+      throw new Error('Favorite already exists.');
+    }
+
+    const newFavorite = await this.favoriteModal.create({
+      ...createFavoriteDto,
+    });
+
+    return {
+      _id: newFavorite._id,
+    };
   }
 
-  findAll() {
-    return `This action returns all favorites`;
+  async findAll(user?: string) {
+    const filter = user ? { user } : {};
+
+    const favorite = await this.favoriteModal
+      .find(filter)
+      .populate('user')
+      .populate('property');
+
+    return favorite;
   }
 
   findOne(id: number) {
@@ -20,7 +51,23 @@ export class FavoritesService {
     return `This action updates a #${id} favorite`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} favorite`;
+  async remove(propertyId: string, userId: string) {
+    if (
+      !mongoose.isValidObjectId(propertyId) ||
+      !mongoose.isValidObjectId(userId)
+    ) {
+      throw new Error('Invalid ID format for propertyId or userId');
+    }
+
+    const deleteResult = await this.favoriteModal.deleteOne({
+      propertyId: propertyId,
+      userId: userId,
+    });
+
+    if (deleteResult.deletedCount === 0) {
+      throw new Error('No favorite found with the given propertyId and userId');
+    }
+
+    return { success: true, message: 'Favorite deleted successfully' };
   }
 }

@@ -1,5 +1,6 @@
 import { AmenityGroup } from '@/modules/amenity-group/schemas/amenity-group.schema';
 import { Category } from '@/modules/categories/schemas/category.schema';
+import { PropertyAmenity } from '@/modules/property.amenities/schemas/property.amenity.schema';
 import { PropertyImage } from '@/modules/property.images/schemas/property.image.schema';
 import { User } from '@/modules/users/schemas/user.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
@@ -52,6 +53,9 @@ export class Property {
 
   @Prop({ type: mongoose.Schema.ObjectId, ref: PropertyImage.name })
   images: mongoose.Schema.Types.ObjectId;
+
+  @Prop({ type: mongoose.Schema.ObjectId, ref: PropertyAmenity.name })
+  propertyAmenity: mongoose.Schema.Types.ObjectId;
 
   @Prop({
     type: [{ type: mongoose.Schema.Types.ObjectId, ref: AmenityGroup.name }],

@@ -11,6 +11,9 @@ export class CreateAmenityDto {
   icon: string;
 
   @IsOptional()
+  type: string;
+
+  @IsOptional()
   @IsMongoId()
   groupId?: string;
 }

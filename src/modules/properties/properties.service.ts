@@ -8,6 +8,8 @@ import mongoose, { Model } from 'mongoose';
 import { User } from '../users/schemas/user.schema';
 import { Category } from '../categories/schemas/category.schema';
 import { AmenityGroup } from '../amenity-group/schemas/amenity-group.schema';
+import aqp from 'api-query-params';
+import { Reservation } from '../reservations/schemas/reservation.schema';
 
 @Injectable()
 export class PropertiesService {
@@ -20,6 +22,8 @@ export class PropertiesService {
     private categoryModel: Model<Category>,
     @InjectModel(AmenityGroup.name)
     private amenityGroupModel: Model<AmenityGroup>,
+    @InjectModel(Reservation.name)
+    private reservationModal: Model<Reservation>,
   ) {}
 
   async create(createPropertyDto: CreatePropertyDto) {
@@ -40,6 +44,7 @@ export class PropertiesService {
       images,
       view,
       rating,
+      propertyAmenity,
     } = createPropertyDto;
     const user = await this.userModel.findById({ _id: host });
     if (!user) {
@@ -71,9 +76,10 @@ export class PropertiesService {
       category,
       amenityList: amenityGroupIds || [],
       host,
-      images: images || '',
+      images: images || null,
       view,
       rating,
+      propertyAmenity,
     });
 
     return {
@@ -88,11 +94,9 @@ export class PropertiesService {
       const categoryData = await this.categoryModel.findOne({ name: category });
 
       if (categoryData) {
-        filter = { category: categoryData._id }; // Sử dụng categoryId để lọc
+        filter = { category: categoryData._id };
       }
     }
-
-    console.log(filter);
 
     const properties = await this.propertyModel.find(filter).populate({
       path: 'images',
@@ -121,9 +125,132 @@ export class PropertiesService {
       })
       .populate({
         path: 'category',
+      })
+      .populate({
+        path: 'propertyAmenity',
       });
     return {
       property,
+    };
+  }
+
+  async searchProperty(query: string, current: number, pageSize: number) {
+    const { filter, sort } = aqp(query);
+
+    // Xử lý phân trang
+    if (filter.current) delete filter.current;
+    if (filter.pageSize) delete filter.pageSize;
+    if (!current) current = 1;
+    if (!pageSize) pageSize = 10;
+
+    if (filter.userId) {
+      filter.userId = filter.userId;
+    }
+
+    if (filter.guestCount) {
+      filter.guestCount = filter.guestCount;
+    }
+
+    if (filter.roomCount) {
+      filter.roomCount = filter.roomCount;
+    }
+
+    if (filter.bathRoomCount) {
+      filter.bathRoomCount = filter.bathRoomCount;
+    }
+
+    if (filter.startDate || filter.endDate) {
+      const startDate = filter.startDate ? new Date(filter.startDate) : null;
+      const endDate = filter.endDate ? new Date(filter.endDate) : null;
+
+      if (startDate && endDate) {
+        const reservedPropertyIds = await this.reservationModal
+          .find({
+            $or: [
+              { startDate: { $lte: endDate, $gte: startDate } },
+              { endDate: { $lte: endDate, $gte: startDate } },
+              { startDate: { $lte: startDate }, endDate: { $gte: endDate } },
+            ],
+          })
+          .distinct('propertyId');
+
+        filter._id = { $nin: reservedPropertyIds };
+      }
+    }
+
+    if (filter.city) {
+      const rawCity = decodeURIComponent(filter.city);
+
+      const normalizedCity = rawCity
+        .replace(/,/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      filter.city = { $regex: normalizedCity, $options: 'i' };
+    }
+
+    if (filter.category) {
+      filter.category = filter.category;
+    }
+
+    if (filter.minPrice || filter.maxPrice) {
+      const minPrice = filter.minPrice ? parseFloat(filter.minPrice) : 0;
+      const maxPrice = filter.maxPrice ? parseFloat(filter.maxPrice) : Infinity;
+      filter.pricePerNight = { $gte: minPrice, $lte: maxPrice };
+      delete filter.minPrice;
+      delete filter.maxPrice;
+    }
+
+    const totalItems = await this.propertyModel.find(filter).countDocuments();
+    const totalPages = Math.ceil(totalItems / pageSize);
+    const skip = (current - 1) * pageSize;
+
+    const results = await this.propertyModel
+      .find(filter)
+      .limit(pageSize)
+      .skip(skip)
+      .sort(sort as any)
+      .populate({
+        path: 'images',
+        populate: {
+          path: 'imageGroup',
+        },
+      })
+      .populate({
+        path: 'host',
+        select: '-password -role -codeId -isActive -codeExpired',
+      })
+      .populate({
+        path: 'category',
+      })
+      .populate({
+        path: 'propertyAmenity',
+      });
+
+    return { results, totalPages, totalItems };
+  }
+
+  async findHost(host: string) {
+    const propertyHost = await this.propertyModel
+      .find({ host: host })
+      .populate({
+        path: 'images',
+        populate: {
+          path: 'imageGroup',
+        },
+      })
+      .populate({
+        path: 'host',
+        select: '-password -role -codeId -isActive -codeExpired',
+      })
+      .populate({
+        path: 'category',
+      })
+      .populate({
+        path: 'propertyAmenity',
+      });
+    return {
+      propertyHost,
     };
   }
 
@@ -145,6 +272,7 @@ export class PropertiesService {
       images,
       view,
       rating,
+      propertyAmenity,
     } = updatePropertyDto;
 
     const property = await this.propertyModel.findById(_id);
@@ -191,6 +319,7 @@ export class PropertiesService {
         images,
         view,
         rating,
+        propertyAmenity,
       },
     );
     return {

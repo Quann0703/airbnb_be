@@ -12,6 +12,9 @@ export class UpdateAmenityDto {
   icon: string;
 
   @IsOptional()
+  type: string;
+
+  @IsOptional()
   @IsMongoId()
   groupId?: string;
 }

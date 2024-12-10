@@ -1,4 +1,4 @@
-import { IsMongoId, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsMongoId, IsOptional } from 'class-validator';
 
 export class CreatePaymentDto {
   @IsOptional()
@@ -9,6 +9,6 @@ export class CreatePaymentDto {
   @IsMongoId({ message: 'phòng phải là ObjectId hợp lệ' })
   propertyId: string;
 
-  @IsNotEmpty({ message: 'số đêm không được để trống' })
+  @IsOptional()
   night: number;
 }

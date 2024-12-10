@@ -17,7 +17,7 @@ export class AmenitiesService {
     private amenityGroupModel: Model<AmenityGroup>,
   ) {}
   async create(createAmenityDto: CreateAmenityDto) {
-    const { name, description, icon, groupId } = createAmenityDto;
+    const { name, description, icon, groupId, type } = createAmenityDto;
 
     const amenityGroupId = await this.amenityGroupModel.findOne({
       _id: groupId,
@@ -32,6 +32,7 @@ export class AmenitiesService {
       description,
       icon,
       group: groupId,
+      type: type,
     });
     if (!amenity) {
       throw new BadRequestException('tao khong thanh cong');
