@@ -25,7 +25,7 @@ export class FavoritesController {
 
   @Get()
   @Public()
-  findAll(@Query('user') user?: string) {
+  findAll(@Query('user') user: string) {
     return this.favoritesService.findAll(user);
   }
 

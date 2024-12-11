@@ -33,12 +33,21 @@ export class FavoritesService {
   }
 
   async findAll(user?: string) {
+    console.log('User filter:', user);
     const filter = user ? { user } : {};
 
     const favorite = await this.favoriteModal
       .find(filter)
       .populate('user')
-      .populate('property');
+      .populate({
+        path: 'property',
+        populate: {
+          path: 'images',
+          populate: {
+            path: 'imageGroup',
+          },
+        },
+      });
 
     return favorite;
   }
